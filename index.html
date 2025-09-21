@@ -2,27 +2,22 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Sports Mappedia</title>
+  <title>Sports Mappedia — Internal</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <!-- Mapbox & PapaParse are lazy-loaded after "Open the map". -->
-
+  <meta name="robots" content="noindex,nofollow" />
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
-    #search-box-container {
-      position: absolute; z-index: 2; width: 45%; left: 50%; margin-left: -25%; top: 10px;
-    }
-
+    #search-box-container { position: absolute; z-index: 2; width: 45%; left: 50%; margin-left: -25%; top: 10px; }
     #toggle-directions, #geolocate-button {
       position: absolute; z-index: 10; padding: 8px 12px; background-color: white; border: 1px solid #ccc; cursor: pointer;
     }
     #toggle-directions { top: 10px; left: 10px; }
     #geolocate-button { top: 10px; left: 185px; }
-
     .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
 
-    /* Search/Filter panel — brand blue (#0057B8) */
+    /* Finder panel */
     #finder {
       position: absolute; z-index: 30; top: 5px; right: 10px; width: 340px;
       background:#0057B8; border:1px solid #004a9f; border-radius:10px;
@@ -30,72 +25,43 @@
       font:12px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:#fff;
     }
-
-    /* Header flex so Hide/Show centers vertically */
     #finder header {
       padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.25); font-weight:600;
-      display:flex; align-items:center; justify-content:space-between; line-height:1.2;
-      color:#fff;
+      display:flex; align-items:center; justify-content:space-between; line-height:1.2; color:#fff;
     }
-    /* Title + tiny icon group */
     #finder .finder-left { display:flex; align-items:center; gap:8px; }
     #finder .finder-icon { width:28px; height:28px; object-fit:contain; border-radius:3px; }
-
     #finder .body { padding:10px 12px; }
     #finder label { color:#fff; }
     #finder .muted { color:rgba(255,255,255,.85); }
-
-    /* Controls stay white for contrast on blue panel */
     #finder input, #finder select, #finder button {
       font:12px inherit; border:1px solid #ddd; border-radius:8px; padding:8px; background:#fff; color:#111827;
     }
     #finder #f-reset { background:#fff; }
     #finder .row { display:flex; gap:8px; }
-
-    /* Result cards remain white on blue background */
     #finder .card { border:1px solid #e5e7eb; border-radius:10px; padding:8px; margin-bottom:6px; cursor:pointer; background:#fff; color:#111827; }
     #finder .chip { border:1px solid #e5e7eb; border-radius:9999px; padding:2px 6px; }
-
-    /* Show/Hide toggle */
     #finder.collapsed .body { display: none; }
-    #f-toggle {
-      background:#fff; border:1px solid #e5e7eb; border-radius:8px;
-      padding:6px 10px; cursor:pointer; margin-left:12px; color:#111827;
-    }
+    #f-toggle { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px; cursor:pointer; margin-left:12px; color:#111827; }
     #f-toggle:hover { background:#f9fafb; }
 
-    /* Mobile: panel at the bottom */
     @media (max-width: 600px) {
       #search-box-container { width: 80%; margin-left: -45%; top: 10px; }
       #toggle-directions { width: 45%; top: auto; bottom: 10px; left: 25%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       #geolocate-button { width: 45%; top: auto; bottom: 10px; left: 75%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions { margin-left: 20px !important; margin-top: 10px !important; }
-
       #finder { top: auto; right: 10px; bottom: 55px; width: calc(100% - 20px); }
     }
 
-    /* Welcome Gate (full-screen) — brand blue */
-    #welcome-gate {
-      position: fixed; inset: 0; background:#0057B8;
-      display: flex; align-items: center; justify-content: center; z-index: 1000;
-    }
-    #welcome-card {
-      width: min(640px, 92vw); background: #fff; border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35); padding: 24px;
-    }
+    /* Welcome Gate */
+    #welcome-gate { position: fixed; inset: 0; background:#0057B8; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    #welcome-card { width: min(640px, 92vw); background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.35); padding: 24px; }
     #welcome-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    #wg-open {
-      padding:10px 14px; border-radius:10px; border:1px solid #111827;
-      background:#111827; color:#fff; cursor:pointer;
-    }
+    #wg-open { padding:10px 14px; border-radius:10px; border:1px solid #111827; background:#111827; color:#fff; cursor:pointer; }
 
-    /* ===== Desktop-only fix: move map controls from top-right to bottom-right ===== */
+    /* Move controls bottom-right on desktop */
     @media (min-width: 601px) {
-      .mapboxgl-ctrl-top-right {
-        top: auto !important;
-        bottom: 25px !important;
-        right: 1px !important;
-      }
+      .mapboxgl-ctrl-top-right { top: auto !important; bottom: 25px !important; right: 1px !important; }
     }
   </style>
 </head>
@@ -103,15 +69,9 @@
   <!-- Welcome gate -->
   <div id="welcome-gate">
     <div id="welcome-card">
-      <!-- Centered big logo (title removed) -->
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:16px;text-align:center;">
-        <img
-          src="sports-mappedia-logo.png"
-          alt="Sports Mappedia logo: Luna"
-          style="height:280px; width:auto; max-width:80vw; border-radius:12px;"
-        />
+        <img src="sports-mappedia-logo.png" alt="Sports Mappedia logo: Luna" style="height:280px; width:auto; max-width:80vw; border-radius:12px;" />
       </div>
-
       <p style="margin:0 0 16px 0;color:#374151;">
         This is unofficial fan created GIS hub for Sports events.<br>
         My name is <b>Luna</b> and if you click &quot;Open the map&quot; I will help you find your way around.
@@ -156,7 +116,6 @@
         <button id="f-reset" style="align-self:flex-end;">Reset</button>
       </div>
 
-      <!-- Auto-hide toggle -->
       <div class="row" style="margin-top:8px; align-items:center;">
         <label style="display:flex; align-items:center; gap:6px;">
           <input id="f-auto-hide" type="checkbox"> Auto-hide on select
@@ -182,35 +141,21 @@
       "https://api.mapbox.com/search-js/v1.3.0/web.js",
       "https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"
     ];
+    function loadCss(href){ return new Promise((res, rej)=>{ const l=document.createElement('link'); l.rel='stylesheet'; l.href=href; l.onload=res; l.onerror=()=>rej(new Error('CSS failed: '+href)); document.head.appendChild(l); }); }
+    function loadScript(src){ return new Promise((res, rej)=>{ const s=document.createElement('script'); s.src=src; s.defer=true; s.onload=res; s.onerror=()=>rej(new Error('JS failed: '+src)); document.head.appendChild(s); }); }
+    async function lazyLoadMapDeps(){ await Promise.all(CSS_URLS.map(loadCss)); for (const src of JS_URLS) { await loadScript(src); } }
 
-    function loadCss(href) {
-      return new Promise((res, rej) => {
-        const l = document.createElement('link');
-        l.rel = 'stylesheet'; l.href = href;
-        l.onload = res; l.onerror = () => rej(new Error('CSS failed: ' + href));
-        document.head.appendChild(l);
-      });
-    }
-    function loadScript(src) {
-      return new Promise((res, rej) => {
-        const s = document.createElement('script');
-        s.src = src; s.defer = true;
-        s.onload = res; s.onerror = () => rej(new Error('JS failed: ' + src));
-        document.head.appendChild(s);
-      });
-    }
-    async function lazyLoadMapDeps() {
-      await Promise.all(CSS_URLS.map(loadCss));
-      for (const src of JS_URLS) { await loadScript(src); }
-    }
+    /* ==== INTERNAL VALUES (token, style, csv) ==== */
+    const ACCESS_TOKEN = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtZnRsNHFqbDA5d2UybHNiYWZyM2l3MmQifQ.9cJ6Ld38FxSOwyWlAjdR-g';
+    const STYLE_URL   = 'mapbox://styles/alenkadic/cmftl3i1100lx01s5bofm07kt';
+    const CSV_URL     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT4pMJNlDWap7pgupC3rZbmbpQsQCqIFgEBryOx1c3leZQkhSyVy3u53XtCv6-gjg/pub?output=csv';
 
     function initMapApp() {
-      const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtZnRpa2swYTB2YXQyanNjbmV2dWdoeHYifQ.u28RMoXZ2cxgZIUNIdDbeg';
+      mapboxgl.accessToken = ACCESS_TOKEN;
 
-      mapboxgl.accessToken = mapboxAccessToken;
       const map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/alenkadic/cmfrcxynq008g01s959qa0olo',
+        style: STYLE_URL,
         center: [-103.213, 39.176],
         zoom: 3
       });
@@ -222,14 +167,11 @@
 
       document.getElementById('toggle-directions').addEventListener('click', function () {
         if (!directionsVisible) {
-          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
+          directionsControl = new MapboxDirections({ accessToken: ACCESS_TOKEN });
           map.addControl(directionsControl, 'top-left');
           this.textContent = 'Hide Directions';
         } else {
-          if (directionsControl) {
-            map.removeControl(directionsControl);
-            directionsControl = null;
-          }
+          if (directionsControl) { map.removeControl(directionsControl); directionsControl = null; }
           this.textContent = 'Show Directions';
         }
         directionsVisible = !directionsVisible;
@@ -249,9 +191,7 @@
                 .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
                 .addTo(map);
 
-              if (directionsControl) {
-                directionsControl.setOrigin([userLng, userLat]);
-              }
+              if (directionsControl) { directionsControl.setOrigin([userLng, userLat]); }
             },
             function () { alert('Geolocation failed or was denied.'); },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -262,10 +202,7 @@
       });
 
       map.on('style.load', () => {
-        const markerNames = [
-          'Games','Stadium Parking','Stadium Gates','Stadiums',
-          'Airports','Team Hotels','Team Training Facilities','Cities'
-        ];
+        const markerNames = ['Games','Stadium Parking','Stadium Gates','Stadiums','Airports','Team Hotels','Team Training Facilities','Cities'];
         const polygonNames = ['Stadium Parking'];
 
         const styleLayers = map.getStyle().layers.map(l => l.id);
@@ -282,7 +219,7 @@
         [...markerLayers, ...polygonLayers].forEach(id => {
           if (map.getLayer(id)) {
             const vis = map.getLayoutProperty(id, 'visibility');
-            if (vis === 'none') map.setLayoutProperty(id, 'visibility', 'visible');
+            if (vis === 'none') map.setLayoutProperty(id, 'visibility', 'visible'); /* correct prop */
           }
         });
 
@@ -339,7 +276,7 @@
 
       // Geocoder (Search)
       const geocoder = new mapboxsearch.MapboxGeocoder();
-      geocoder.accessToken = mapboxAccessToken;
+      geocoder.accessToken = ACCESS_TOKEN;
       geocoder.options = { proximity: [-103.213, 39.176] };
       geocoder.mapboxgl = mapboxgl;
       geocoder.marker = true;
@@ -347,10 +284,7 @@
       document.getElementById('search-box-container').appendChild(geocoder);
 
       /* CSV SEARCH/FILTER */
-      const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQo9I4u2eq3GUY-9K-Kopu1wRcA9-ZHI9BjEVAMs4kD8zH3PGaKmRWwm9Wcy4bTgJTFNeQrqfxcAOR8/pub?output=csv';
-
       let fRows = []; let fFiltered = []; let fMarker = null;
-
       const fQ = document.getElementById('f-q');
       const fGo = document.getElementById('f-go');
       const fLayer = document.getElementById('f-layer');
@@ -358,13 +292,11 @@
       const fStatus = document.getElementById('f-status');
       const fResults = document.getElementById('f-results');
       const fAutoHide = document.getElementById('f-auto-hide');
-
       const finder = document.getElementById('finder');
       const fToggle = document.getElementById('f-toggle');
 
       const savedCollapsed = localStorage.getItem('finderCollapsed') === 'true';
       if (savedCollapsed) { finder.classList.add('collapsed'); fToggle.textContent = 'Show'; fToggle.setAttribute('aria-expanded','false'); }
-
       const savedAH = localStorage.getItem('finderAutoHide');
       fAutoHide.checked = (savedAH === null) ? true : savedAH === 'true';
 
@@ -563,7 +495,7 @@
       })();
     }
 
-    // Gate logic
+    // Gate logic (lazy-load libs after click)
     const gate = document.getElementById('welcome-gate');
     const openBtn = document.getElementById('wg-open');
     const loading = document.getElementById('wg-loading');
@@ -594,6 +526,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 

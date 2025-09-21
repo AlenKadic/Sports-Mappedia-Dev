@@ -9,10 +9,15 @@
   <!-- Security meta tags -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://api.tiles.mapbox.com https://*.tiles.mapbox.com https://docs.google.com https://googleusercontent.com https://cdn.jsdelivr.net;
-    img-src 'self' data: blob: https://api.mapbox.com https://*.tiles.mapbox.com https://events.mapbox.com;
+    connect-src 'self'
+      https://api.mapbox.com https://events.mapbox.com
+      https://api.tiles.mapbox.com https://*.tiles.mapbox.com
+      https://docs.google.com https://*.googleusercontent.com
+      https://cdn.jsdelivr.net;
+    img-src 'self' data: blob:
+      https://api.mapbox.com https://*.tiles.mapbox.com https://events.mapbox.com;
     style-src 'self' 'unsafe-inline' https://api.mapbox.com;
-    script-src 'self' 'unsafe-inline' https://api.mapbox.com https://cdn.jsdelivr.net;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://api.mapbox.com https://cdn.jsdelivr.net;
     worker-src blob:;
     frame-ancestors 'none';
     base-uri 'self';
@@ -21,97 +26,39 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Permissions-Policy" content="geolocation=(self), microphone=(), camera=(), fullscreen=(self), payment=()">
 
-  <!-- Mapbox & PapaParse are lazy-loaded after "Open the map". -->
+  <!-- Mapbox & PapaParse are lazy-loaded after 'Open the map'. Your styles below: -->
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-
-    #search-box-container {
-      position: absolute; z-index: 2; width: 45%; left: 50%; margin-left: -25%; top: 10px;
-    }
-
-    #toggle-directions, #geolocate-button {
-      position: absolute; z-index: 10; padding: 8px 12px; background-color: white; border: 1px solid #ccc; cursor: pointer;
-    }
+    #search-box-container { position: absolute; z-index: 2; width: 45%; left: 50%; margin-left: -25%; top: 10px; }
+    #toggle-directions, #geolocate-button { position: absolute; z-index: 10; padding: 8px 12px; background-color: white; border: 1px solid #ccc; cursor: pointer; }
     #toggle-directions { top: 10px; left: 10px; }
     #geolocate-button { top: 10px; left: 185px; }
-
     .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
-
-    /* Search/Filter panel — brand blue (#0057B8) */
-    #finder {
-      position: absolute; z-index: 30; top: 5px; right: 10px; width: 340px;
-      background:#0057B8; border:1px solid #004a9f; border-radius:10px;
-      box-shadow:0 8px 24px rgba(0,0,0,.22);
-      font:12px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:#fff;
-    }
-
-    /* Header flex so Hide/Show centers vertically */
-    #finder header {
-      padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.25); font-weight:600;
-      display:flex; align-items:center; justify-content:space-between; line-height:1.2;
-      color:#fff;
-    }
-    /* Title + tiny icon group */
+    #finder { position: absolute; z-index: 30; top: 5px; right: 10px; width: 340px; background:#0057B8; border:1px solid #004a9f; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.22); font:12px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#fff; }
+    #finder header { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.25); font-weight:600; display:flex; align-items:center; justify-content:space-between; line-height:1.2; color:#fff; }
     #finder .finder-left { display:flex; align-items:center; gap:8px; }
     #finder .finder-icon { width:28px; height:28px; object-fit:contain; border-radius:3px; }
-
     #finder .body { padding:10px 12px; }
     #finder label { color:#fff; }
     #finder .muted { color:rgba(255,255,255,.85); }
-
-    /* Controls stay white for contrast on blue panel */
-    #finder input, #finder select, #finder button {
-      font:12px inherit; border:1px solid #ddd; border-radius:8px; padding:8px; background:#fff; color:#111827;
-    }
+    #finder input, #finder select, #finder button { font:12px inherit; border:1px solid #ddd; border-radius:8px; padding:8px; background:#fff; color:#111827; }
     #finder #f-reset { background:#fff; }
     #finder .row { display:flex; gap:8px; }
-
-    /* Result cards remain white on blue background */
     #finder .card { border:1px solid #e5e7eb; border-radius:10px; padding:8px; margin-bottom:6px; cursor:pointer; background:#fff; color:#111827; }
     #finder .chip { border:1px solid #e5e7eb; border-radius:9999px; padding:2px 6px; }
-
-    /* Show/Hide toggle */
     #finder.collapsed .body { display: none; }
-    #f-toggle {
-      background:#fff; border:1px solid #e5e7eb; border-radius:8px;
-      padding:6px 10px; cursor:pointer; margin-left:12px; color:#111827;
-    }
+    #f-toggle { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px; cursor:pointer; margin-left:12px; color:#111827; }
     #f-toggle:hover { background:#f9fafb; }
-
-    /* Mobile: panel at the bottom */
     @media (max-width: 600px) {
       #search-box-container { width: 80%; margin-left: -45%; top: 10px; }
       #toggle-directions { width: 45%; top: auto; bottom: 10px; left: 25%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       #geolocate-button { width: 45%; top: auto; bottom: 10px; left: 75%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions { margin-left: 20px !important; margin-top: 10px !important; }
-
       #finder { top: auto; right: 10px; bottom: 55px; width: calc(100% - 20px); }
     }
-
-    /* Welcome Gate (full-screen) — brand blue */
-    #welcome-gate {
-      position: fixed; inset: 0; background:#0057B8;
-      display: flex; align-items: center; justify-content: center; z-index: 1000;
-    }
-    #welcome-card {
-      width: min(640px, 92vw); background: #fff; border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35); padding: 24px;
-    }
-    #welcome-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    #wg-open {
-      padding:10px 14px; border-radius:10px; border:1px solid #111827;
-      background:#111827; color:#fff; cursor:pointer;
-    }
-
-    /* ===== Desktop-only fix: move map controls from top-right to bottom-right ===== */
     @media (min-width: 601px) {
-      .mapboxgl-ctrl-top-right {
-        top: auto !important;
-        bottom: 25px !important;
-        right: 1px !important;
-      }
+      .mapboxgl-ctrl-top-right { top: auto !important; bottom: 25px !important; right: 1px !important; }
     }
   </style>
 </head>
@@ -576,6 +523,7 @@
   </script>
 </body>
 </html>
+
 
 
 
